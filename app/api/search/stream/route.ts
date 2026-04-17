@@ -34,10 +34,33 @@ export async function GET(req: Request) {
 
         send({ stage: "scoring", progress: 80, message: "Рассчитываю скоринг..." });
 
-        // 2. Скоринг
+        // 2. Скоринг — нормализуем поля перед расчётом
         const scored = rawListings
-          .filter((l): l is Listing => !!(l.id && l.area && l.area > 0))
-          .map((l) => ({ ...l, _score: computeBasicScore(l) }))
+          .filter((l) => l.id && l.area && l.area > 0)
+          .map((l) => {
+            const listing: Listing = {
+              id: l.id!,
+              krishaId: l.krishaId,
+              district: l.district || "",
+              propertyType: l.propertyType || "",
+              address: l.address || "",
+              lat: l.lat || 0,
+              lng: l.lng || 0,
+              area: l.area || 0,
+              price: l.price || 0,
+              m2: l.m2 || 0,
+              floor: l.floor || 1,
+              ceilings: l.ceilings || 0,
+              condition: l.condition || "",
+              entrance: l.entrance || "",
+              features: l.features || [],
+              photos: l.photos || [],
+              source: l.source || "",
+              sourceUrl: l.sourceUrl || "",
+              phone: l.phone || "",
+            };
+            return { ...listing, _score: computeBasicScore(listing) };
+          })
           .sort((a, b) => b._score - a._score);
 
         send({ stage: "scoring", progress: 95, message: `Готово! ${scored.length} помещений` });

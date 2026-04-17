@@ -55,7 +55,10 @@ function detectPropertyType(text: string): string {
 
 async function fetchPage(url: string): Promise<string | null> {
   try {
-    const resp = await fetch(url, { headers: HEADERS });
+    const resp = await fetch(url, {
+      headers: HEADERS,
+      signal: AbortSignal.timeout(10_000), // 10с таймаут на каждый запрос
+    });
     if (!resp.ok) return null;
     return await resp.text();
   } catch {
