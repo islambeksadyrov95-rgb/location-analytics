@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Listing } from "@/lib/types";
 import { computeScore, fmt, fmtN, SQ_M_PER_PERSON } from "@/lib/scoring";
+import { downloadReport } from "@/lib/report";
 import { ScoreRing } from "./ScoreRing";
 import { PhotoCarousel } from "./PhotoCarousel";
 import { Section } from "./Section";
@@ -272,6 +273,14 @@ export function ListingDetail({ listing: l, niche, onBack }: Props) {
           <b>Объявление:</b> {l.source}
         </div>
       </div>
+
+      {/* Скачать отчёт */}
+      <button
+        onClick={() => downloadReport(l, niche)}
+        className="w-full mt-4 py-3.5 rounded-xl bg-[#fbbf24] text-[#08080f] font-bold text-sm cursor-pointer border-none active:opacity-80 transition-opacity"
+      >
+        Скачать отчёт
+      </button>
     </div>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { LISTINGS, DISTRICTS, PROPERTY_TYPES, NICHES } from "@/lib/data";
-import { computeScore, fmt, fmtN } from "@/lib/scoring";
+import { LISTINGS, NICHES } from "@/lib/data";
+import { computeScore, fmtN } from "@/lib/scoring";
 import { ListingCard } from "@/components/ListingCard";
 import { ListingDetail } from "@/components/ListingDetail";
+import { Onboarding } from "@/components/Onboarding";
+import { AdvancedFilters, DEFAULT_FILTERS, type FilterState } from "@/components/AdvancedFilters";
 
 const MapView = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -17,34 +19,75 @@ const MapView = dynamic(() => import("@/components/Map"), {
 });
 
 type Tab = "list" | "map";
+const ONBOARDING_KEY = "lip_onboarding_done";
 
 export default function Home() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [niche, setNiche] = useState("coffee");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [budget, setBudget] = useState(10000000);
-  const [district, setDistrict] = useState("Все");
-  const [propType, setPropType] = useState("Все");
-  const [sortBy, setSort] = useState("score");
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
   const [tab, setTab] = useState<Tab>("list");
   const [mapRadius] = useState(1000);
 
+  // Проверяем показывали ли онбординг
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem(ONBOARDING_KEY)) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
   const filtered = useMemo(() => {
-    let items = LISTINGS.filter((l) => l.price <= budget);
-    if (district !== "Все") items = items.filter((l) => l.district === district);
-    if (propType !== "Все") items = items.filter((l) => l.propertyType === propType);
-    if (sortBy === "score") items.sort((a, b) => computeScore(b, niche) - computeScore(a, niche));
-    else if (sortBy === "price") items.sort((a, b) => a.price - b.price);
-    else if (sortBy === "price_m2") items.sort((a, b) => a.m2 - b.m2);
-    else if (sortBy === "traffic")
+    let items = LISTINGS.filter((l) => l.price <= filters.budget);
+    if (filters.district !== "Все") items = items.filter((l) => l.district === filters.district);
+    if (filters.propType !== "Все") items = items.filter((l) => l.propertyType === filters.propType);
+    if (filters.condition !== "Все") items = items.filter((l) => l.condition === filters.condition);
+    if (filters.entrance !== "Все") items = items.filter((l) => l.entrance === filters.entrance);
+    if (filters.areaMin > 0) items = items.filter((l) => l.area >= filters.areaMin);
+    if (filters.areaMax < 1000) items = items.filter((l) => l.area <= filters.areaMax);
+    if (filters.floorMax < 10) items = items.filter((l) => l.floor <= filters.floorMax);
+    if (filters.ceilingsMin > 0) items = items.filter((l) => l.ceilings >= filters.ceilingsMin);
+
+    if (filters.sortBy === "score") items.sort((a, b) => computeScore(b, niche) - computeScore(a, niche));
+    else if (filters.sortBy === "price") items.sort((a, b) => a.price - b.price);
+    else if (filters.sortBy === "price_m2") items.sort((a, b) => a.m2 - b.m2);
+    else if (filters.sortBy === "traffic")
       items.sort((a, b) => b.radius.pedestrian.weekday - a.radius.pedestrian.weekday);
-    else if (sortBy === "population")
-      items.sort(
-        (a, b) => b.radius.housing.estPopulation - a.radius.housing.estPopulation,
-      );
+    else if (filters.sortBy === "population")
+      items.sort((a, b) => b.radius.housing.estPopulation - a.radius.housing.estPopulation);
+    else if (filters.sortBy === "area") items.sort((a, b) => b.area - a.area);
     return items;
-  }, [budget, district, propType, sortBy, niche]);
+  }, [filters, niche]);
 
   const selected = LISTINGS.find((l) => l.id === selectedId);
+
+  // Кол-во активных фильтров
+  const activeFilterCount = Object.entries(filters).filter(([key, val]) => {
+    const def = DEFAULT_FILTERS[key as keyof FilterState];
+    return val !== def;
+  }).length;
+
+  if (showOnboarding) {
+    return (
+      <Onboarding
+        onComplete={() => {
+          localStorage.setItem(ONBOARDING_KEY, "1");
+          setShowOnboarding(false);
+        }}
+      />
+    );
+  }
+
+  if (showFilters) {
+    return (
+      <AdvancedFilters
+        filters={filters}
+        onChange={setFilters}
+        onClose={() => setShowFilters(false)}
+        resultCount={filtered.length}
+      />
+    );
+  }
 
   return (
     <div className="font-[Manrope,system-ui,sans-serif] bg-[#08080f] text-[#d1d5db] min-h-screen">
@@ -54,7 +97,7 @@ export default function Home() {
           <div className="w-7 h-7 rounded-[7px] bg-gradient-to-br from-[#f59e0b] to-[#d97706] flex items-center justify-center text-[13px]">
             📍
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="m-0 text-[15px] font-extrabold text-white tracking-tight">
               Location Intelligence Pro
             </h1>
@@ -62,6 +105,14 @@ export default function Home() {
               Алматы · Крыша + 2ГИС · {fmtN(LISTINGS.length)} помещений
             </p>
           </div>
+          {/* Кнопка "О сервисе" */}
+          <button
+            onClick={() => setShowOnboarding(true)}
+            className="w-7 h-7 rounded-full bg-[#1e1e2a] border-none text-[#6b7280] text-xs cursor-pointer flex items-center justify-center"
+            title="О сервисе"
+          >
+            ?
+          </button>
         </div>
 
         {/* Выбор ниши */}
@@ -91,9 +142,9 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Табы: Список / Карта */}
+        {/* Табы + фильтры */}
         {!selected && (
-          <div className="flex gap-1.5 mb-2">
+          <div className="flex gap-1.5">
             {(["list", "map"] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -107,45 +158,16 @@ export default function Home() {
                 {t === "list" ? "📋 Список" : "🗺️ Карта"}
               </button>
             ))}
-          </div>
-        )}
-
-        {/* Фильтры */}
-        {!selected && tab === "list" && (
-          <div className="flex gap-1.5">
-            <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              className="flex-1 px-1.5 py-1.5 rounded-[7px] border border-[#1e1e2a] bg-[#0f0f18] text-[#9ca3af] text-[10px] font-semibold"
+            <button
+              onClick={() => setShowFilters(true)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer border transition-colors ${
+                activeFilterCount > 0
+                  ? "border-[#fbbf24]/30 bg-[#fbbf24]/10 text-[#fbbf24]"
+                  : "border-[#1e1e2a] bg-[#0f0f18] text-[#4b5563]"
+              }`}
             >
-              {DISTRICTS.map((d) => (
-                <option key={d} value={d}>
-                  {d === "Все" ? "Все районы" : d}
-                </option>
-              ))}
-            </select>
-            <select
-              value={propType}
-              onChange={(e) => setPropType(e.target.value)}
-              className="flex-1 px-1.5 py-1.5 rounded-[7px] border border-[#1e1e2a] bg-[#0f0f18] text-[#9ca3af] text-[10px] font-semibold"
-            >
-              {PROPERTY_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t === "Все" ? "Все типы" : t}
-                </option>
-              ))}
-            </select>
-            <select
-              value={sortBy}
-              onChange={(e) => setSort(e.target.value)}
-              className="flex-1 px-1.5 py-1.5 rounded-[7px] border border-[#1e1e2a] bg-[#0f0f18] text-[#9ca3af] text-[10px] font-semibold"
-            >
-              <option value="score">По рейтингу</option>
-              <option value="price">По цене ↑</option>
-              <option value="price_m2">По ₸/м²</option>
-              <option value="traffic">По трафику</option>
-              <option value="population">По населению</option>
-            </select>
+              ⚙️ Фильтры{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+            </button>
           </div>
         )}
       </div>
@@ -155,7 +177,7 @@ export default function Home() {
         {selected ? (
           <ListingDetail listing={selected} niche={niche} onBack={() => setSelectedId(null)} />
         ) : tab === "map" ? (
-          <div className="h-[calc(100vh-200px)] min-h-[400px]">
+          <div className="h-[calc(100vh-180px)] min-h-[400px]">
             <MapView
               listings={filtered}
               niche={niche}
@@ -166,30 +188,10 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Слайдер бюджета */}
-            <div className="mb-2.5">
-              <div className="flex justify-between mb-0.5">
-                <span className="text-[10px] text-[#4b5563]">Бюджет аренды</span>
-                <span className="text-[11px] font-extrabold text-[#e5e7eb]">
-                  {fmt(budget)} ₸/мес
-                </span>
-              </div>
-              <input
-                type="range"
-                min={200000}
-                max={10000000}
-                step={100000}
-                value={budget}
-                onChange={(e) => setBudget(+e.target.value)}
-                className="w-full accent-[#f59e0b] h-1"
-              />
-            </div>
-
             <div className="text-[10px] text-[#4b5563] mb-2.5">
-              {filtered.length} помещений · нажмите для анализа
+              {filtered.length} из {LISTINGS.length} помещений · нажмите для анализа
             </div>
 
-            {/* Карточки */}
             {filtered.map((l) => (
               <ListingCard key={l.id} listing={l} niche={niche} onSelect={setSelectedId} />
             ))}
@@ -197,7 +199,13 @@ export default function Home() {
             {filtered.length === 0 && (
               <div className="text-center py-10 text-[#4b5563]">
                 <div className="text-3xl mb-2">🔍</div>
-                <div className="text-[13px]">Нет помещений по фильтрам</div>
+                <div className="text-[13px] mb-3">Нет помещений по фильтрам</div>
+                <button
+                  onClick={() => setFilters(DEFAULT_FILTERS)}
+                  className="px-4 py-2 rounded-lg bg-[#1e1e2a] border-none text-[#fbbf24] text-xs font-semibold cursor-pointer"
+                >
+                  Сбросить фильтры
+                </button>
               </div>
             )}
           </>
