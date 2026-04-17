@@ -79,6 +79,8 @@ export interface Listing {
   features: string[];
   photos: string[];
   source: string;
+  sourceUrl: string;
+  phone: string;
   radius: RadiusData;
 }
 

@@ -260,6 +260,25 @@ export function ListingDetail({ listing: l, niche, onBack }: Props) {
         </div>
       </Section>
 
+      {/* Контакты и ссылка */}
+      <div className="bg-[#12121a] rounded-xl p-3.5 border border-[#1e1e2a] mt-2.5">
+        <div className="text-[11px] font-bold text-[#e5e7eb] mb-2">Контакты</div>
+        <a
+          href={`tel:${l.phone}`}
+          className="flex items-center gap-2 py-2.5 px-3 bg-[#0f0f18] rounded-lg border border-[#1e1e2a] text-[#fbbf24] text-sm font-bold no-underline mb-2"
+        >
+          <span>📞</span> {l.phone}
+        </a>
+        <a
+          href={l.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 py-2.5 px-3 bg-[#0f0f18] rounded-lg border border-[#1e1e2a] text-[#60a5fa] text-xs font-semibold no-underline"
+        >
+          <span>🔗</span> Открыть на Крыша.kz
+        </a>
+      </div>
+
       {/* Источники данных */}
       <div className="bg-[#fbbf24]/[0.03] rounded-xl p-3.5 border border-[#fbbf24]/[0.08] mt-2.5">
         <div className="text-[11px] font-bold text-[#fbbf24] mb-1.5">Источники данных</div>

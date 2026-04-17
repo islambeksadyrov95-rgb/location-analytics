@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 
 export function PhotoCarousel({ photos }: { photos: string[] }) {
   const [idx, setIdx] = useState(0);
+  const startX = useRef<number | null>(null);
+
+  const prev = useCallback(
+    () => setIdx((p) => (p - 1 + photos.length) % photos.length),
+    [photos.length],
+  );
+  const next = useCallback(
+    () => setIdx((p) => (p + 1) % photos.length),
+    [photos.length],
+  );
 
   if (!photos || !photos.length)
     return (
@@ -13,52 +23,72 @@ export function PhotoCarousel({ photos }: { photos: string[] }) {
     );
 
   return (
-    <div className="relative h-[200px] overflow-hidden">
+    <div
+      className="relative h-[200px] overflow-hidden select-none"
+      onTouchStart={(e) => {
+        startX.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={(e) => {
+        if (startX.current === null) return;
+        const diff = e.changedTouches[0].clientX - startX.current;
+        if (Math.abs(diff) > 40) {
+          if (diff < 0) next();
+          else prev();
+        }
+        startX.current = null;
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        key={photos[idx]}
         src={photos[idx]}
-        alt=""
-        className="w-full h-[200px] object-cover transition-opacity duration-300"
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = "none";
-        }}
+        alt={`Фото ${idx + 1}`}
+        className="w-full h-[200px] object-cover"
+        draggable={false}
       />
       {photos.length > 1 && (
         <>
-          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {/* Dots */}
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
             {photos.map((_, i) => (
               <button
                 key={i}
-                onClick={(e) => {
+                onPointerDown={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   setIdx(i);
                 }}
-                className={`h-[7px] rounded-full border-none cursor-pointer transition-all ${
-                  i === idx ? "w-4 bg-[#fbbf24]" : "w-[7px] bg-white/40"
+                className={`rounded-full border-none cursor-pointer transition-all ${
+                  i === idx ? "w-5 h-2.5 bg-[#fbbf24]" : "w-2.5 h-2.5 bg-white/50"
                 }`}
               />
             ))}
           </div>
+          {/* Prev */}
           <button
-            onClick={(e) => {
+            onPointerDown={(e) => {
               e.stopPropagation();
-              setIdx((p) => (p - 1 + photos.length) % photos.length);
+              e.preventDefault();
+              prev();
             }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 border-none text-white w-7 h-7 rounded-full cursor-pointer text-sm"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 border-none text-white w-9 h-9 rounded-full cursor-pointer text-lg flex items-center justify-center z-10"
           >
             ‹
           </button>
+          {/* Next */}
           <button
-            onClick={(e) => {
+            onPointerDown={(e) => {
               e.stopPropagation();
-              setIdx((p) => (p + 1) % photos.length);
+              e.preventDefault();
+              next();
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 border-none text-white w-7 h-7 rounded-full cursor-pointer text-sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 border-none text-white w-9 h-9 rounded-full cursor-pointer text-lg flex items-center justify-center z-10"
           >
             ›
           </button>
         </>
       )}
-      <div className="absolute top-2 left-2 bg-black/60 rounded-md px-2 py-0.5 text-[10px] text-[#d1d5db]">
+      <div className="absolute top-2 left-2 bg-black/60 rounded-md px-2 py-0.5 text-[10px] text-[#d1d5db] z-10">
         {idx + 1}/{photos.length}
       </div>
     </div>

@@ -87,6 +87,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12847291",
+    sourceUrl: "https://krisha.kz/a/show/12847291",
+    phone: "+7 (707) 123-45-67",
     radius: {
       direct: [
         { name: "Starbucks", dist: 120, rating: 4.2, check: 3500, reviews: 890 },
@@ -144,6 +146,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13001847",
+    sourceUrl: "https://krisha.kz/a/show/13001847",
+    phone: "+7 (701) 234-56-78",
     radius: {
       direct: [
         { name: "Кофейня Батыр", dist: 300, rating: 4.0, check: 1200, reviews: 89 },
@@ -195,6 +199,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12993104",
+    sourceUrl: "https://krisha.kz/a/show/12993104",
+    phone: "+7 (702) 345-67-89",
     radius: {
       direct: [
         { name: "The Ritz", dist: 200, rating: 4.6, check: 8000, reviews: 1540 },
@@ -246,6 +252,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1564069114553-7215e1ff1890?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12788430",
+    sourceUrl: "https://krisha.kz/a/show/12788430",
+    phone: "+7 (705) 456-78-90",
     radius: {
       direct: [{ name: "Чайхана у дороги", dist: 400, rating: 3.5, check: 2000, reviews: 42 }],
       indirect: [{ name: "Магазин Анвар", dist: 150, type: "продукты", rating: 3.2 }],
@@ -284,6 +292,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13102553",
+    sourceUrl: "https://krisha.kz/a/show/13102553",
+    phone: "+7 (708) 567-89-01",
     radius: {
       direct: [
         { name: "Coffeedelia", dist: 250, rating: 4.6, check: 3000, reviews: 920 },
@@ -332,6 +342,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13200145",
+    sourceUrl: "https://krisha.kz/a/show/13200145",
+    phone: "+7 (700) 678-90-12",
     radius: {
       direct: [
         { name: "Regus Coworking", dist: 200, rating: 4.1, check: 5000, reviews: 120 },
@@ -381,6 +393,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12654789",
+    sourceUrl: "https://krisha.kz/a/show/12654789",
+    phone: "+7 (771) 789-01-23",
     radius: {
       direct: [
         { name: "Магнум", dist: 200, rating: 4.0, check: 0, reviews: 340 },
@@ -429,6 +443,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13045678",
+    sourceUrl: "https://krisha.kz/a/show/13045678",
+    phone: "+7 (707) 890-12-34",
     radius: {
       direct: [
         { name: "Beans Coffee", dist: 350, rating: 4.3, check: 1600, reviews: 210 },
@@ -478,6 +494,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13078901",
+    sourceUrl: "https://krisha.kz/a/show/13078901",
+    phone: "+7 (702) 901-23-45",
     radius: {
       direct: [
         { name: "Sulpak", dist: 300, rating: 4.2, check: 0, reviews: 560 },
@@ -526,6 +544,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12890456",
+    sourceUrl: "https://krisha.kz/a/show/12890456",
+    phone: "+7 (701) 012-34-56",
     radius: {
       direct: [
         { name: "Складской комплекс А", dist: 300, rating: 3.5, check: 0, reviews: 15 },
@@ -568,6 +588,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13112233",
+    sourceUrl: "https://krisha.kz/a/show/13112233",
+    phone: "+7 (705) 112-23-34",
     radius: {
       direct: [],
       indirect: [
@@ -613,6 +635,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13156789",
+    sourceUrl: "https://krisha.kz/a/show/13156789",
+    phone: "+7 (708) 156-78-90",
     radius: {
       direct: [
         { name: "Starbucks Арбат", dist: 80, rating: 4.3, check: 3200, reviews: 1450 },
@@ -665,6 +689,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12978654",
+    sourceUrl: "https://krisha.kz/a/show/12978654",
+    phone: "+7 (700) 978-65-43",
     radius: {
       direct: [
         { name: "Donner King", dist: 150, rating: 4.0, check: 1200, reviews: 180 },
@@ -714,6 +740,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13234567",
+    sourceUrl: "https://krisha.kz/a/show/13234567",
+    phone: "+7 (771) 234-56-78",
     radius: {
       direct: [
         { name: "Regus Нурлы Тау", dist: 50, rating: 4.2, check: 6000, reviews: 95 },
@@ -760,6 +788,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12876543",
+    sourceUrl: "https://krisha.kz/a/show/12876543",
+    phone: "+7 (707) 876-54-32",
     radius: {
       direct: [
         { name: "Чайхана Достар", dist: 100, rating: 4.1, check: 2500, reviews: 320 },
@@ -809,6 +839,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12765432",
+    sourceUrl: "https://krisha.kz/a/show/12765432",
+    phone: "+7 (702) 765-43-21",
     radius: {
       direct: [],
       indirect: [
@@ -850,6 +882,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13189012",
+    sourceUrl: "https://krisha.kz/a/show/13189012",
+    phone: "+7 (705) 189-01-23",
     radius: {
       direct: [
         { name: "Тибет кофе", dist: 200, rating: 4.3, check: 1800, reviews: 340 },
@@ -896,6 +930,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12934567",
+    sourceUrl: "https://krisha.kz/a/show/12934567",
+    phone: "+7 (708) 934-56-78",
     radius: {
       direct: [
         { name: "Магнум Express", dist: 180, rating: 4.0, check: 0, reviews: 210 },
@@ -942,6 +978,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #12845678",
+    sourceUrl: "https://krisha.kz/a/show/12845678",
+    phone: "+7 (700) 845-67-89",
     radius: {
       direct: [],
       indirect: [],
@@ -981,6 +1019,8 @@ export const LISTINGS: Listing[] = [
       "https://images.unsplash.com/photo-1550966871-3ed3cdb51f3a?w=600&h=350&fit=crop&q=80",
     ],
     source: "krisha.kz #13267890",
+    sourceUrl: "https://krisha.kz/a/show/13267890",
+    phone: "+7 (771) 267-89-01",
     radius: {
       direct: [
         { name: "Бочка", dist: 300, rating: 4.5, check: 5000, reviews: 1890 },
