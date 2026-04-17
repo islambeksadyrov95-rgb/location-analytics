@@ -1,5 +1,30 @@
 // Типы данных для Location Intelligence Pro
 
+// === Базовый листинг (из /api/listings, без радиусного анализа) ===
+export interface Listing {
+  id: number;
+  krishaId?: number;
+  district: string;
+  propertyType: string;
+  address: string;
+  lat: number;
+  lng: number;
+  area: number;
+  price: number;
+  m2: number;
+  floor: number;
+  ceilings: number;
+  condition: string;
+  entrance: string;
+  features: string[];
+  photos: string[];
+  source: string;
+  sourceUrl: string;
+  phone: string;
+}
+
+// === Радиусный анализ (из /api/listings/[id]/analysis) ===
+
 export interface Competitor {
   name: string;
   dist: number;
@@ -60,28 +85,6 @@ export interface RadiusData {
   transport: TransportStop[];
   housing: HousingData;
   pedestrian: PedestrianData;
-}
-
-export interface Listing {
-  id: number;
-  district: string;
-  propertyType: string;
-  address: string;
-  lat: number;
-  lng: number;
-  area: number;
-  price: number;
-  m2: number;
-  floor: number;
-  ceilings: number;
-  condition: string;
-  entrance: string;
-  features: string[];
-  photos: string[];
-  source: string;
-  sourceUrl: string;
-  phone: string;
-  radius: RadiusData;
 }
 
 export interface Niche {

@@ -1,0 +1,38 @@
+name: Parse Data (krisha.kz + 2gis)
+
+on:
+  schedule:
+    # Каждый день в 04:00 UTC (10:00 Алматы)
+    - cron: '0 4 * * *'
+  workflow_dispatch: # ручной запуск через GitHub UI
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r parsers/requirements.txt
+
+      - name: Initialize DB schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python parsers/init_db.py
+
+      - name: Parse krisha.kz
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python parsers/krisha_parser.py --max-pages 30
+
+      - name: Parse 2gis
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python parsers/twogis_parser.py

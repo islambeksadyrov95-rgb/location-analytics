@@ -1,11 +1,12 @@
-import type { Listing } from "./types";
+import type { Listing, RadiusData } from "./types";
 
 // stat.gov.kz 2025: обеспеченность жильём 27.4 м²/чел в городах
 export const SQ_M_PER_PERSON = 27.4;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function computeScore(l: Listing, niche: string): number {
-  const r = l.radius;
+/**
+ * Полный скоринг (для детальной карточки с радиусным анализом).
+ */
+export function computeFullScore(l: Listing, r: RadiusData): number {
   let s = 50;
 
   // 1. Конкуренция
@@ -41,6 +42,38 @@ export function computeScore(l: Listing, niche: string): number {
   if (l.floor === 1) s += 3;
   if (l.entrance.includes("Отдельный")) s += 2;
   if (l.ceilings >= 3.5) s += 2;
+
+  return Math.max(0, Math.min(100, s));
+}
+
+/**
+ * Простой скоринг (для карточки в списке, без радиусного анализа).
+ * Основан только на характеристиках помещения.
+ */
+export function computeBasicScore(l: Listing): number {
+  let s = 50;
+
+  // Цена за м²
+  if (l.m2 < 5000) s += 15;
+  else if (l.m2 < 10000) s += 8;
+  else if (l.m2 > 20000) s -= 5;
+
+  // Этаж
+  if (l.floor === 1) s += 8;
+  else if (l.floor === 2) s += 3;
+  else s -= 3;
+
+  // Вход
+  if (l.entrance.includes("Отдельный")) s += 5;
+  if (l.entrance.includes("с улицы")) s += 3;
+
+  // Потолки
+  if (l.ceilings >= 3.5) s += 5;
+  else if (l.ceilings >= 3.0) s += 2;
+
+  // Состояние
+  if (l.condition.includes("Свежий") || l.condition.includes("Евро")) s += 5;
+  else if (l.condition.includes("Черновая")) s -= 3;
 
   return Math.max(0, Math.min(100, s));
 }

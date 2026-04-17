@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Listing } from "@/lib/types";
-import { computeScore, fmt } from "@/lib/scoring";
+import { computeBasicScore, fmt } from "@/lib/scoring";
 
 // Фикс иконок Leaflet в Next.js
 const defaultIcon = L.divIcon({
@@ -42,7 +42,7 @@ interface MapProps {
   radius?: number;
 }
 
-export default function MapView({ listings, niche, selectedId, onSelect, radius }: MapProps) {
+export default function MapView({ listings, selectedId, onSelect, radius }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const selected = listings.find((l) => l.id === selectedId);
 
@@ -63,7 +63,7 @@ export default function MapView({ listings, niche, selectedId, onSelect, radius 
       {selected && <FlyTo lat={selected.lat} lng={selected.lng} />}
 
       {listings.map((l) => {
-        const score = computeScore(l, niche);
+        const score = computeBasicScore(l);
         const isSelected = l.id === selectedId;
         return (
           <Marker

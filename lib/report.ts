@@ -1,9 +1,8 @@
-import type { Listing } from "./types";
-import { computeScore, fmt, fmtN, SQ_M_PER_PERSON } from "./scoring";
+import type { Listing, RadiusData } from "./types";
+import { computeFullScore, computeBasicScore, fmt, fmtN, SQ_M_PER_PERSON } from "./scoring";
 
-export function generateReport(listing: Listing, niche: string): string {
-  const r = listing.radius;
-  const score = computeScore(listing, niche);
+export function generateReport(listing: Listing, niche: string, analysis?: RadiusData): string {
+  const score = analysis ? computeFullScore(listing, analysis) : computeBasicScore(listing);
   const scoreLabel =
     score >= 75 ? "Отличная" : score >= 50 ? "Хорошая" : score >= 30 ? "Средняя" : "Слабая";
 
@@ -12,6 +11,8 @@ export function generateReport(listing: Listing, niche: string): string {
     doner: "Донерная",
     restaurant: "Ресторан",
   };
+
+  const r = analysis;
 
   return `<!DOCTYPE html>
 <html lang="ru">
@@ -70,10 +71,11 @@ export function generateReport(listing: Listing, niche: string): string {
   <div style="font-size:16px;font-weight:700;margin-top:4px">${scoreLabel} локация</div>
 </div>
 
+${r ? `
 <h2>Прямые конкуренты (${r.direct.length})</h2>
 ${
   r.direct.length === 0
-    ? '<div style="color:#16a34a;font-weight:600;padding:8px 0">Нет прямых конкурентов в радиусе 1 км — отличная позиция!</div>'
+    ? '<div style="color:#16a34a;font-weight:600;padding:8px 0">Нет прямых конкурентов в радиусе — отличная позиция!</div>'
     : `<table>
   <tr><th>Название</th><th>Расстояние</th><th>Рейтинг</th><th>Отзывы</th><th>Ср. чек</th></tr>
   ${r.direct.map((c) => `<tr><td>${c.name}${c.branches ? ` (${c.branches} фил.)` : ""}</td><td>${c.dist}м</td><td>★${c.rating}</td><td>${fmtN(c.reviews)}</td><td>${c.check ? fmt(c.check) + "₸" : "—"}</td></tr>`).join("")}
@@ -112,7 +114,7 @@ ${
   <div class="card"><div class="label">Пешеходы (выходные)</div><div class="value">${fmtN(r.pedestrian.weekend)}/день</div></div>
 </div>
 <div style="font-size:11px;color:#6b7280;margin-top:8px">
-  Формула населения: ${fmtN(r.housing.totalAreaM2)} м² ÷ ${SQ_M_PER_PERSON} м²/чел = ${fmtN(r.housing.estPopulation)} жителей (stat.gov.kz, 2025)
+  Формула населения: площадь ÷ ${SQ_M_PER_PERSON} м²/чел = ${fmtN(r.housing.estPopulation)} жителей (stat.gov.kz, 2025)
 </div>
 
 ${
@@ -124,6 +126,7 @@ ${
 </table>`
     : ""
 }
+` : '<div style="color:#6b7280;padding:16px;text-align:center">Данные анализа недоступны. Запустите парсеры.</div>'}
 
 <div class="footer">
   <b>Location Intelligence Pro</b> · Алматы<br>
@@ -136,8 +139,8 @@ ${
 </html>`;
 }
 
-export function downloadReport(listing: Listing, niche: string) {
-  const html = generateReport(listing, niche);
+export function downloadReport(listing: Listing, niche: string, analysis?: RadiusData) {
+  const html = generateReport(listing, niche, analysis);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
