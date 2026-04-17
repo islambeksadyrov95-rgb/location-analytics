@@ -12,6 +12,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@telegram-apps/sdk": "^3.11.8",
     "@telegram-apps/sdk-react": "^3.3.9",
+    "cheerio": "^1.2.0",
     "leaflet": "^1.9.4",
     "next": "16.2.4",
     "react": "19.2.4",

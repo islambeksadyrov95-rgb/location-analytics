@@ -138,13 +138,15 @@ def parse_listing_from_json(soup: BeautifulSoup, url: str) -> dict | None:
     if not krisha_id:
         return None
 
-    price = advert.get("price", 0)
+    price = advert.get("price", 0) or 0
     if isinstance(price, str):
         price = int(re.sub(r"[^\d]", "", price) or 0)
+    price = int(price) if price else 0
 
-    area = advert.get("square", 0)
+    area = advert.get("square", 0) or 0
     if isinstance(area, str):
         area = int(re.sub(r"[^\d]", "", area) or 0)
+    area = int(area) if area else 0
 
     map_data = advert.get("map", {})
     lat = map_data.get("lat")
@@ -224,19 +226,60 @@ def parse_listing_from_json(soup: BeautifulSoup, url: str) -> dict | None:
 # ─── HTML-скрапинг (fallback) ──────────────────────────────────
 
 def parse_listing_from_html(soup: BeautifulSoup, url: str) -> dict | None:
-    """Fallback: парсит через CSS-селекторы."""
+    """Fallback: парсит через CSS-селекторы (обновлённая вёрстка krisha.kz)."""
     krisha_id_match = re.search(r"/(\d+)$", url)
     if not krisha_id_match:
         return None
     krisha_id = int(krisha_id_match.group(1))
 
-    price_el = soup.select_one("[class*='offer__price']")
+    # Цена — первый offer__price-part (без м² части)
+    price_el = soup.select_one(".offer__price-part")
+    if not price_el:
+        price_el = soup.select_one("[class*='offer__price']")
     price_text = price_el.get_text(strip=True) if price_el else "0"
     price = int(re.sub(r"[^\d]", "", price_text) or 0)
 
-    address_el = soup.select_one("[class*='offer__location']")
-    address = address_el.get_text(strip=True) if address_el else ""
+    # Адрес из data-name="map.street"
+    addr_el = soup.select_one("[data-name='map.street']")
+    if addr_el:
+        # Берём текст из info-value внутри
+        val_el = addr_el.select_one("[class*='info-value'], dd")
+        address = val_el.get_text(strip=True) if val_el else addr_el.get_text(strip=True)
+    else:
+        addr_el = soup.select_one("[class*='offer__location']")
+        address = addr_el.get_text(strip=True) if addr_el else ""
+    # Чистим мусор из адреса
+    address = address.replace("показать на карте", "").strip()
+    # Убираем заголовок "Адрес" если попал в текст
+    if address.startswith("Адрес"):
+        address = address[5:].strip()
 
+    # Параметры из data-name или dt/dd
+    def get_data_value(data_name: str) -> str:
+        el = soup.select_one(f"[data-name='{data_name}']")
+        if not el:
+            return ""
+        # Ищем значение в��утри элемента
+        for child in el.select("[class*='info-value'], dd"):
+            return child.get_text(strip=True)
+        text = el.get_text(strip=True)
+        # Убираем заголовок (первая строка)
+        title_el = el.select_one("[class*='info-title']")
+        if title_el:
+            text = text.replace(title_el.get_text(strip=True), "", 1).strip()
+        return text
+
+    area_text = get_data_value("com.square")
+    area = int(re.sub(r"[^\d]", "", area_text) or 0)
+
+    floor_text = get_data_value("flat.floor") or get_data_value("com.floor")
+    floor = int(re.search(r"\d+", floor_text).group()) if floor_text and re.search(r"\d+", floor_text) else 1
+
+    ceilings_text = get_data_value("flat.ceiling") or get_data_value("com.ceiling")
+    ceilings_match = re.search(r"[\d.]+", ceilings_text) if ceilings_text else None
+    ceilings = float(ceilings_match.group()) if ceilings_match else 0
+
+    # dt/dd для параметров без data-name
     params = {}
     for dt in soup.select("dt"):
         key = dt.get_text(strip=True).lower()
@@ -244,25 +287,23 @@ def parse_listing_from_html(soup: BeautifulSoup, url: str) -> dict | None:
         if dd:
             params[key] = dd.get_text(strip=True)
 
-    area = int(re.sub(r"[^\d]", "", params.get("площадь", "0")) or 0)
-    floor_text = params.get("этаж", "1")
-    floor = int(re.search(r"\d+", floor_text).group()) if re.search(r"\d+", floor_text) else 1
-    ceilings_text = params.get("потолки", "0")
-    ceilings_match = re.search(r"[\d.]+", ceilings_text)
-    ceilings = float(ceilings_match.group()) if ceilings_match else 0
-
     condition = params.get("состояние", "")
     entrance = params.get("вход", "")
 
     desc_el = soup.select_one("[class*='offer__description']")
     description = desc_el.get_text(strip=True)[:2000] if desc_el else ""
 
+    # Фото
     photos = []
     for img in soup.select("[class*='gallery'] img, [class*='photo'] img"):
         src = img.get("src") or img.get("data-src") or ""
-        if src and "krisha.kz" in src:
-            photos.append(src.replace("/thumb/", "/full/"))
+        if src and ("krisha" in src or "kcdn" in src):
+            src = src.replace("/thumb/", "/full/")
+            if not src.startswith("http"):
+                src = "https:" + src
+            photos.append(src)
 
+    # Координаты из JS
     lat, lon = None, None
     for script in soup.find_all("script"):
         text = script.string or ""

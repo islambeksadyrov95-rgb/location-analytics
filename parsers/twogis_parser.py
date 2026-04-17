@@ -27,11 +27,11 @@ RETRY_DELAYS = (5, 15, 60, 300)
 # 2ГИС публичный API (используется веб-версией)
 API_BASE = "https://catalog.api.2gis.com/3.0/items"
 
-# API ключ 2ГИС (публичный, используется в веб-версии)
-API_KEY = "rujany7535"
+# API ключ 2ГИС (публичный)
+API_KEY = "demo"
 
 # Алматы — город в 2ГИС
-CITY_ID = "92"  # region_id для Алматы
+CITY_ID = "67"  # region_id для Алматы
 
 # Рубрики для парсинга
 # Формат: (rubric_id, primary_rubric_name, table, category)

@@ -91,6 +91,13 @@ export interface Niche {
   id: string;
   label: string;
   icon: string;
+  category: string;
   directRubric: string;
   indirectRubric: string;
+}
+
+export interface NicheCategory {
+  id: string;
+  label: string;
+  icon: string;
 }

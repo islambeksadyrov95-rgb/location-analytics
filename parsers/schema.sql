@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS listing_photos (
 -- Заведения из 2ГИС (конкуренты, кафе, рестораны)
 CREATE TABLE IF NOT EXISTS venues (
     id SERIAL PRIMARY KEY,
-    gis_id VARCHAR(100) UNIQUE,
+    gis_id VARCHAR(200) UNIQUE,
     name VARCHAR(500),
     address TEXT,
     district VARCHAR(100),
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS venues (
 -- Жилые здания (для расчёта населения)
 CREATE TABLE IF NOT EXISTS buildings (
     id SERIAL PRIMARY KEY,
-    gis_id VARCHAR(100),
+    gis_id VARCHAR(200),
     address TEXT,
     lat DECIMAL(10,7),
     lon DECIMAL(10,7),
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS buildings (
 -- Инфраструктура (остановки, БЦ, ТЦ, школы, госорганы)
 CREATE TABLE IF NOT EXISTS infrastructure (
     id SERIAL PRIMARY KEY,
-    gis_id VARCHAR(100),
+    gis_id VARCHAR(200),
     name VARCHAR(500),
     category VARCHAR(100),
     subcategory VARCHAR(200),

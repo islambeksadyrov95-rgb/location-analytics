@@ -23,9 +23,15 @@ const DISTRICT_TO_SHORT: Record<string, string> = Object.fromEntries(
 );
 
 const NICHE_LABELS: Record<string, string> = {
-  coffee: "Кофейня",
-  doner: "Донерная",
-  restaurant: "Ресторан",
+  coffee: "Кофейня", doner: "Донерная", restaurant: "Ресторан",
+  bakery: "Пекарня", pizza: "Пиццерия", burger: "Бургерная",
+  sushi: "Суши-бар", canteen: "Столовая", bar: "Бар", confectionery: "Кондитерская",
+  barbershop: "Барбершоп", beauty_salon: "Салон красоты", nails: "Маникюр", cosmetology: "Косметология",
+  dental: "Стоматология", pharmacy: "Аптека", med_center: "Мед. центр",
+  grocery: "Продукты", clothing: "Одежда", flowers: "Цветы", pet_shop: "Зоомагазин",
+  car_wash: "Автомойка", dry_cleaning: "Химчистка", photo_studio: "Фотостудия",
+  gym: "Фитнес-зал", yoga: "Йога-студия",
+  kids_center: "Детский центр", kindergarten: "Детский сад",
 };
 
 const BUDGET_OPTIONS = [
@@ -68,17 +74,18 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
 }
 
 async function handleStart(chatId: number) {
+  const webappUrl = process.env.WEBAPP_URL || "https://location-analytics.vercel.app";
+
   await tg.sendMessage(
     chatId,
-    "<b>Location Intelligence Pro</b>\n\nНайду лучшие помещения для вашего бизнеса в Алматы.\n\nВыберите нишу:",
+    "<b>Location Intelligence Pro</b>\n\n" +
+    "Геоаналитика для выбора локации бизнеса в Алматы.\n\n" +
+    "28+ ниш: общепит, красота, медицина, торговля, услуги и другие.\n\n" +
+    "Нажмите кнопку ниже, чтобы открыть приложение:",
     {
       reply_markup: {
         inline_keyboard: [
-          [
-            { text: "Кофейня", callback_data: "n:coffee" },
-            { text: "Донерная", callback_data: "n:doner" },
-            { text: "Ресторан", callback_data: "n:restaurant" },
-          ],
+          [{ text: "Открыть приложение", web_app: { url: webappUrl } }],
         ],
       },
     }

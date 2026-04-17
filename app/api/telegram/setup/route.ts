@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
   const host = request.headers.get("host");
   const proto = request.headers.get("x-forwarded-proto") || "https";
   const webhookUrl = `${proto}://${host}/api/telegram/webhook`;
+  const webappUrl = process.env.WEBAPP_URL || `${proto}://${host}`;
 
-  const resp = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+  // 1. Установка webhook
+  const webhookResp = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -18,7 +20,21 @@ export async function GET(request: NextRequest) {
       allowed_updates: ["message", "callback_query"],
     }),
   });
+  const webhookResult = await webhookResp.json();
 
-  const result = await resp.json();
-  return Response.json({ webhookUrl, result });
+  // 2. Установка Menu Button (кнопка Mini App в чате)
+  const menuResp = await fetch(`https://api.telegram.org/bot${token}/setChatMenuButton`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      menu_button: {
+        type: "web_app",
+        text: "Открыть",
+        web_app: { url: webappUrl },
+      },
+    }),
+  });
+  const menuResult = await menuResp.json();
+
+  return Response.json({ webhookUrl, webappUrl, webhook: webhookResult, menuButton: menuResult });
 }

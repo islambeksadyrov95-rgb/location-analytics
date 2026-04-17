@@ -9,6 +9,8 @@ import { ListingCard } from "@/components/ListingCard";
 import { ListingDetail } from "@/components/ListingDetail";
 import { Onboarding } from "@/components/Onboarding";
 import { AdvancedFilters, DEFAULT_FILTERS, type FilterState } from "@/components/AdvancedFilters";
+import { NicheSelector } from "@/components/NicheSelector";
+import { SearchProgress } from "@/components/SearchProgress";
 
 const MapView = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -35,14 +37,85 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
+  const [showNicheSelector, setShowNicheSelector] = useState(false);
   const [tab, setTab] = useState<Tab>("list");
   const [mapRadius] = useState(1000);
 
+  // Real-time search state
+  const [searchState, setSearchState] = useState<"idle" | "searching" | "done">("idle");
+  const [searchProgress, setSearchProgress] = useState(0);
+  const [searchStage, setSearchStage] = useState("");
+
   const [data, setData] = useState<ListingsState>({ status: "loading", listings: [], total: 0 });
   const reqRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // Загрузка объявлений из API
+  // Real-time поиск через SSE
+  const startSearch = () => {
+    // Отменяем предыдущий поиск
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setSearchState("searching");
+    setSearchProgress(0);
+    setSearchStage("Подготовка...");
+    setData({ status: "loading", listings: [], total: 0 });
+
+    const params = new URLSearchParams({
+      budget: String(filters.budget),
+      district: filters.district,
+      propType: filters.propType,
+      areaMin: String(filters.areaMin),
+      areaMax: String(filters.areaMax),
+      niche,
+    });
+
+    fetch(`/api/search/stream?${params}`, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.body) throw new Error("No stream");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || "";
+
+          for (const block of lines) {
+            if (!block.startsWith("data: ")) continue;
+            try {
+              const event = JSON.parse(block.slice(6));
+              setSearchProgress(event.progress || 0);
+              setSearchStage(event.message || "");
+
+              if (event.stage === "done" && event.listings) {
+                setData({ status: "done", listings: event.listings, total: event.listings.length });
+                setSearchState("done");
+              }
+              if (event.stage === "error") {
+                setData({ status: "error", listings: [], total: 0 });
+                setSearchState("done");
+              }
+            } catch { /* skip malformed */ }
+          }
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          setData({ status: "error", listings: [], total: 0 });
+          setSearchState("done");
+        }
+      });
+  };
+
+  // Загрузка из БД (для первоначального отображения)
   useEffect(() => {
+    if (searchState === "searching") return;
     const reqId = ++reqRef.current;
     const params = new URLSearchParams({
       budget: String(filters.budget),
@@ -69,7 +142,7 @@ export default function Home() {
           setData({ status: "error", listings: [], total: 0 });
         }
       });
-  }, [filters]);
+  }, [filters, searchState]);
 
   const listings = data.listings;
   const totalCount = data.total;
@@ -84,6 +157,7 @@ export default function Home() {
   }, [listings, filters.sortBy]);
 
   const selected = listings.find((l) => l.id === selectedId);
+  const currentNiche = NICHES.find((n) => n.id === niche);
 
   const activeFilterCount = Object.entries(filters).filter(([key, val]) => {
     const def = DEFAULT_FILTERS[key as keyof FilterState];
@@ -97,6 +171,19 @@ export default function Home() {
           localStorage.setItem(ONBOARDING_KEY, "1");
           setShowOnboarding(false);
         }}
+      />
+    );
+  }
+
+  if (showNicheSelector) {
+    return (
+      <NicheSelector
+        selected={niche}
+        onSelect={(id) => {
+          setNiche(id);
+          setSelectedId(null);
+        }}
+        onClose={() => setShowNicheSelector(false)}
       />
     );
   }
@@ -137,31 +224,23 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Выбор ниши */}
+        {/* Выбор ниши + поиск */}
         <div className="flex gap-1.5 mb-2">
-          {NICHES.map((n) => (
-            <button
-              key={n.id}
-              onClick={() => {
-                setNiche(n.id);
-                setSelectedId(null);
-              }}
-              className={`flex-1 py-[7px] px-1 rounded-lg text-center cursor-pointer border-[1.5px] transition-colors ${
-                niche === n.id
-                  ? "border-[#f59e0b] bg-[#f59e0b]/[0.06]"
-                  : "border-[#1e1e2a] bg-[#0f0f18]"
-              }`}
-            >
-              <span className="text-[15px]">{n.icon}</span>
-              <div
-                className={`text-[9px] font-bold mt-0.5 ${
-                  niche === n.id ? "text-[#fbbf24]" : "text-[#4b5563]"
-                }`}
-              >
-                {n.label}
-              </div>
-            </button>
-          ))}
+          <button
+            onClick={() => setShowNicheSelector(true)}
+            className="flex-1 py-[7px] px-3 rounded-lg cursor-pointer border-[1.5px] border-[#f59e0b] bg-[#f59e0b]/[0.06] flex items-center gap-2"
+          >
+            <span className="text-[15px]">{currentNiche?.icon}</span>
+            <span className="text-[11px] font-bold text-[#fbbf24]">{currentNiche?.label}</span>
+            <span className="text-[9px] text-[#4b5563] ml-auto">&#9662;</span>
+          </button>
+          <button
+            onClick={startSearch}
+            disabled={searchState === "searching"}
+            className="px-4 py-[7px] rounded-lg cursor-pointer border-[1.5px] border-[#22c55e] bg-[#22c55e]/10 text-[#22c55e] text-[11px] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {searchState === "searching" ? "Ищу..." : "Live-поиск"}
+          </button>
         </div>
 
         {/* Табы + фильтры */}
@@ -196,7 +275,9 @@ export default function Home() {
 
       {/* КОНТЕНТ */}
       <div className="px-4 pt-3 pb-8">
-        {selected ? (
+        {searchState === "searching" ? (
+          <SearchProgress progress={searchProgress} stage={searchStage} />
+        ) : selected ? (
           <ListingDetail listing={selected} niche={niche} onBack={() => setSelectedId(null)} />
         ) : tab === "map" ? (
           <div className="h-[calc(100vh-180px)] min-h-[400px]">
