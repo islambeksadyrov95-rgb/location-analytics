@@ -85,6 +85,16 @@ CREATE TABLE IF NOT EXISTS infrastructure (
     extra JSONB DEFAULT '{}'
 );
 
+-- История цен (для отслеживания изменений)
+CREATE TABLE IF NOT EXISTS prices (
+    id SERIAL PRIMARY KEY,
+    listing_id INT REFERENCES listings(id) ON DELETE CASCADE,
+    price_month BIGINT NOT NULL,
+    recorded_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prices_listing ON prices(listing_id);
+
 -- Индексы для быстрого радиусного поиска
 CREATE INDEX IF NOT EXISTS idx_listings_coords ON listings(lat, lon);
 CREATE INDEX IF NOT EXISTS idx_venues_coords ON venues(lat, lon);

@@ -21,6 +21,9 @@ from psycopg2.extras import Json
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
+# Retry delays для API
+RETRY_DELAYS = (5, 15, 60, 300)
+
 # 2ГИС публичный API (используется веб-версией)
 API_BASE = "https://catalog.api.2gis.com/3.0/items"
 
@@ -81,7 +84,7 @@ SQ_M_PER_PERSON = 27.4
 
 
 def fetch_items(rubric_id: str, page: int = 1, page_size: int = 50) -> dict:
-    """Запрос к API 2ГИС."""
+    """Запрос к API 2ГИС с retry."""
     params = {
         "key": API_KEY,
         "region_id": CITY_ID,
@@ -91,13 +94,27 @@ def fetch_items(rubric_id: str, page: int = 1, page_size: int = 50) -> dict:
         "fields": "items.point,items.rubrics,items.reviews,items.schedule,items.attribute_groups,items.org,items.context",
         "sort": "relevance",
     }
+    # Первая попытка
     try:
         resp = requests.get(API_BASE, params=params, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         return resp.json()
     except requests.RequestException as e:
         log.warning(f"API error rubric {rubric_id} page {page}: {e}")
-        return {}
+
+    # Retry с backoff
+    for delay in RETRY_DELAYS:
+        log.info(f"  2GIS retry через {delay}с (rubric {rubric_id}, page {page})")
+        time.sleep(delay)
+        try:
+            resp = requests.get(API_BASE, params=params, headers=HEADERS, timeout=20)
+            resp.raise_for_status()
+            return resp.json()
+        except requests.RequestException as e:
+            log.warning(f"  2GIS retry failed: {e}")
+
+    log.error(f"2GIS: все retry исчерпаны для rubric {rubric_id} page {page}")
+    return {}
 
 
 def extract_avg_check(item: dict) -> int | None:
